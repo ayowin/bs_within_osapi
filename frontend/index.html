@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WinOnline - 在线Markdown编辑器</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .markdown-body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 45px;
+            line-height: 1.8;
+        }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3, 
+        .markdown-body h4, .markdown-body h5, .markdown-body h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        .markdown-body h1 { font-size: 2em; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+        .markdown-body h2 { font-size: 1.5em; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+        .markdown-body h3 { font-size: 1.25em; }
+        .markdown-body p { margin-bottom: 16px; }
+        .markdown-body code {
+            padding: 0.2em 0.4em;
+            background: #f4f4f4;
+            border-radius: 3px;
+            font-family: 'Consolas', monospace;
+        }
+        .markdown-body pre {
+            background: #f4f4f4;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        .markdown-body pre code {
+            background: none;
+            padding: 0;
+        }
+        .markdown-body blockquote {
+            border-left: 4px solid #ddd;
+            padding-left: 16px;
+            margin-left: 0;
+            color: #666;
+        }
+        .markdown-body ul, .markdown-body ol {
+            padding-left: 24px;
+            margin-bottom: 16px;
+        }
+        .markdown-body a { color: #2563eb; }
+        .markdown-body img { max-width: 100%; }
+        .markdown-body hr { border: none; border-top: 1px solid #ddd; margin: 24px 0; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 登录页面 -->
+        <div id="login-page" class="page">
+            <div class="login-container">
+                <h1>WinOnline</h1>
+                <h2>用户登录</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="username">用户名</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit">登录</button>
+                </form>
+                <p id="login-error" class="error"></p>
+                <p class="hint">默认账户: admin / admin123</p>
+            </div>
+        </div>
+
+        <!-- 主页面 -->
+        <div id="main-page" class="page hidden">
+            <!-- 顶部导航栏 -->
+            <header class="header">
+                <div class="header-left">
+                    <h1>WinOnline</h1>
+                    <span class="user-info">欢迎, <span id="display-name"></span></span>
+                </div>
+                <div class="header-right">
+                    <button id="btn-logs" class="btn btn-secondary">操作日志</button>
+                    <button id="btn-users" class="btn btn-secondary">用户管理</button>
+                    <button id="btn-logout" class="btn btn-danger">退出</button>
+                </div>
+            </header>
+
+            <!-- 标签页导航 -->
+            <nav class="tabs">
+                <button class="tab active" data-tab="files">文件列表</button>
+                <button class="tab" data-tab="editor">编辑器</button>
+                <button class="tab" data-tab="logs">日志查看</button>
+            </nav>
+
+            <!-- 文件列表面板 -->
+            <div id="panel-files" class="panel active">
+                <div class="panel-header">
+                    <h2>Markdown 文件</h2>
+                    <div class="panel-actions">
+                        <button id="btn-refresh-files" class="btn btn-secondary">刷新</button>
+                        <button id="btn-new-file" class="btn btn-primary">新建文件</button>
+                    </div>
+                </div>
+                <div class="file-browser">
+                    <div class="breadcrumb">
+                        <span id="current-path">请选择目录</span>
+                    </div>
+                    <div class="file-list-container">
+                        <div id="file-list" class="file-list">
+                            <p class="loading">加载中...</p>
+                        </div>
+                    </div>
+                    <div class="directory-controls">
+                        <button id="btn-create-dir" class="btn btn-small">新建目录</button>
+                        <span id="system-info" class="system-info"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 编辑器面板 -->
+            <div id="panel-editor" class="panel">
+                <div class="editor-container">
+                    <div class="editor-header">
+                        <input type="text" id="file-path-input" placeholder="文件名" class="file-path-input">
+                        <div class="editor-actions">
+                            <button id="btn-save" class="btn btn-primary">保存</button>
+                            <button id="btn-new-doc" class="btn btn-secondary">新建</button>
+                            <button id="btn-preview" class="btn btn-secondary">预览</button>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <textarea id="markdown-editor" placeholder="在此输入Markdown内容..."></textarea>
+                        <div id="preview" class="preview markdown-body hidden"></div>
+                    </div>
+                    <div class="editor-status">
+                        <span id="status-message">就绪</span>
+                        <span id="file-info"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 日志查看面板 -->
+            <div id="panel-logs" class="panel">
+                <div class="panel-header">
+                    <h2>本地文件操作日志</h2>
+                    <div class="panel-actions">
+                        <button id="btn-refresh-logs" class="btn btn-secondary">刷新</button>
+                    </div>
+                </div>
+                <div class="logs-container">
+                    <table class="logs-table">
+                        <thead>
+                            <tr>
+                                <th>时间</th>
+                                <th>操作</th>
+                                <th>文件名</th>
+                                <th>路径</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-tbody">
+                            <tr><td colspan="5" class="loading">加载中...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 用户管理模态框 -->
+            <div id="modal-users" class="modal hidden">
+                <div class="modal-content modal-large">
+                    <div class="modal-header">
+                        <h2>用户管理</h2>
+                        <button class="modal-close" data-modal="modal-users">&times;</button>
+                    </div>
+                    <div class="modal-body user-management">
+                        <!-- 用户列表 -->
+                        <div class="user-section">
+                            <div class="section-header">
+                                <h3>用户列表</h3>
+                                <div class="section-actions">
+                                    <input type="text" id="user-search" placeholder="搜索用户名..." oninput="searchUsers()">
+                                    <button class="btn btn-small" onclick="loadUsers()">刷新</button>
+                                </div>
+                            </div>
+                            <table class="data-table" id="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>用户名</th>
+                                        <th>显示名称</th>
+                                        <th>邮箱</th>
+                                        <th>状态</th>
+                                        <th>创建时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-tbody">
+                                    <tr><td colspan="7" class="loading">加载中...</td></tr>
+                                </tbody>
+                            </table>
+                            <div class="pagination" id="users-pagination"></div>
+                        </div>
+                        
+                        <!-- 新建用户 -->
+                        <div class="user-section">
+                            <h3>新建用户</h3>
+                            <form id="user-form" class="inline-form">
+                                <input type="text" id="new-username" placeholder="用户名" required>
+                                <input type="password" id="new-password" placeholder="密码" required>
+                                <input type="email" id="new-email" placeholder="邮箱">
+                                <input type="text" id="new-display-name" placeholder="显示名称">
+                                <button type="submit" class="btn btn-primary">创建</button>
+                            </form>
+                        </div>
+                        
+                        <!-- 操作日志 -->
+                        <div class="user-section">
+                            <div class="section-header">
+                                <h3>操作日志</h3>
+                                <div class="section-actions">
+                                    <button class="btn btn-small" onclick="loadUserLogs()">刷新</button>
+                                </div>
+                            </div>
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>时间</th>
+                                        <th>操作</th>
+                                        <th>描述</th>
+                                        <th>IP</th>
+                                        <th>状态</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="user-logs-tbody">
+                                    <tr><td colspan="5" class="loading">加载中...</td></tr>
+                                </tbody>
+                            </table>
+                            <div class="pagination" id="logs-pagination"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 编辑用户模态框 -->
+            <div id="modal-edit-user" class="modal hidden">
+                <div class="modal-content modal-small">
+                    <div class="modal-header">
+                        <h2>编辑用户</h2>
+                        <button class="modal-close" data-modal="modal-edit-user">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="edit-user-form">
+                            <input type="hidden" id="edit-user-id">
+                            <div class="form-group">
+                                <label>用户名</label>
+                                <input type="text" id="edit-username" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-display-name">显示名称</label>
+                                <input type="text" id="edit-display-name" placeholder="显示名称">
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-email">邮箱</label>
+                                <input type="email" id="edit-email" placeholder="邮箱">
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-password">新密码 (留空则不修改)</label>
+                                <input type="password" id="edit-password" placeholder="新密码">
+                            </div>
+                            <div class="modal-actions">
+                                <button type="submit" class="btn btn-primary">保存</button>
+                                <button type="button" class="btn btn-secondary" onclick="hideModal('modal-edit-user')">取消</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 新建目录模态框 -->
+            <div id="modal-new-dir" class="modal hidden">
+                <div class="modal-content modal-small">
+                    <div class="modal-header">
+                        <h2>新建目录</h2>
+                        <button class="modal-close" data-modal="modal-new-dir">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" id="new-dir-name" placeholder="目录名称">
+                        <button id="btn-confirm-new-dir" class="btn btn-primary">创建</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 确认删除模态框 -->
+            <div id="modal-confirm" class="modal hidden">
+                <div class="modal-content modal-small">
+                    <div class="modal-header">
+                        <h2>确认删除</h2>
+                        <button class="modal-close" data-modal="modal-confirm">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="confirm-message">确定要删除吗？</p>
+                        <div class="modal-actions">
+                            <button id="btn-confirm-yes" class="btn btn-danger">确认</button>
+                            <button id="btn-confirm-no" class="btn btn-secondary">取消</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast通知 -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
