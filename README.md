@@ -1,3 +1,6 @@
+# bs_within_osapi
+* 示例：B/S项目，web前端间接调用用户机器的操作系统API
+
 # WinOnline - 在线 Markdown 编辑器
 
 一个基于 Web 的本地文件系统浏览器和 Markdown 编辑器。
