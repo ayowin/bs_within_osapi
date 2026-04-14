@@ -69,8 +69,8 @@ python app.py
 # 前端静态服务 (端口 8080)
 # 启动前，请在frontend/app.js中配置后端服务器IP地址
 const CONFIG = {
-    // BACKEND_API需要配置后端服务器ip
-    BACKEND_API: 'http://192.168.0.7:5000/api',
+    // BACKEND_API需要配置后端服务器IP
+    BACKEND_API: 'http://[后端服务器IP]:5000/api',
     // OSAPI为127.0.0.1即可
     OSAPI: 'http://127.0.0.1:8888/api'
 };
