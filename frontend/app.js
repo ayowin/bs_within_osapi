@@ -5,7 +5,7 @@
 // ============== 配置 ==============
 
 const CONFIG = {
-    // BACKEND_API需要配置服务器ip
+    // BACKEND_API需要配置后端服务器ip
     BACKEND_API: 'http://192.168.0.7:5000/api',
     // OSAPI为127.0.0.1即可
     OSAPI: 'http://127.0.0.1:8888/api'
