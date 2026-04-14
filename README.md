@@ -67,6 +67,14 @@ cd backend
 python app.py
 
 # 前端静态服务 (端口 8080)
+# 启动前，请在frontend/app.js中配置后端服务器IP地址
+const CONFIG = {
+    // BACKEND_API需要配置后端服务器ip
+    BACKEND_API: 'http://192.168.0.7:5000/api',
+    // OSAPI为127.0.0.1即可
+    OSAPI: 'http://127.0.0.1:8888/api'
+};
+# 配置好后再启动
 cd frontend
 python -m http.server 8080
 ```
@@ -105,9 +113,9 @@ python build.py
 
 ## 访问地址
 
-- 前端页面: http://localhost:8080
-- 后端 API: http://localhost:5000
-- OS API: http://localhost:8888
+- 前端页面: http://[前端服务器IP]:8080
+- 后端 API: http://[后端服务器IP]:5000
+- OS API: http://[客户机IP]:8888
 
 ## 技术栈
 
