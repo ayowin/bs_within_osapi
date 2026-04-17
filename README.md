@@ -59,6 +59,11 @@ bs_within_osapi/
 
 ## 启动方式
 
+安装依赖
+```bash
+pip install -r requirements.txt
+```
+
 启动前端和后端服务：
 
 ```bash
@@ -76,7 +81,7 @@ const CONFIG = {
 };
 # 配置好后再启动
 cd frontend
-python -m http.server 8080
+python -m http.server 8080 --bind 0.0.0.0
 ```
 
 启动OS API 服务 (端口 8888) ⚠️ 必须在客户机上运行： 
@@ -85,7 +90,6 @@ python -m http.server 8080
 2. 复制osapi_service文件夹至客户机，运行OS API服务：
 ```bash
 cd osapi_service
-pip install flask flask_cors flask_sqlalchemy
 python app.py
 ```
 
